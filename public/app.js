@@ -565,9 +565,106 @@
       updateCreditsDisplay();
       startSession(selectedPort, 5, '5-Min Free Pass');
     } else {
-      // Open Payment Modal
+      // Directly Open Official Razorpay Checkout Popup
       const price = selectedMinutes === 5 ? 5 : selectedPrice;
-      openPaymentModal(selectedMinutes, price);
+      triggerDirectRazorpayCheckout(selectedMinutes, price, 'start');
+    }
+  }
+
+  // Directly Open Official Razorpay Checkout (No intermediate QR modal)
+  async function triggerDirectRazorpayCheckout(minutes, price, actionType = 'start') {
+    activePaymentOrder = {
+      minutes: minutes,
+      price: price,
+      actionType: actionType
+    };
+
+    if (actionType === 'start' && btnLaunchTunnel) {
+      btnLaunchTunnel.disabled = true;
+      btnLaunchText.textContent = 'Opening Razorpay...';
+    }
+
+    try {
+      const orderRes = await fetch('/api/payment/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: price,
+          planMinutes: minutes,
+          planName: `${minutes}-Min ${actionType === 'extend' ? 'Extension' : 'Pass'}`
+        })
+      });
+
+      const orderData = await orderRes.json();
+      if (!orderData.success) {
+        throw new Error(orderData.error || 'Failed to initiate checkout order');
+      }
+
+      // If Razorpay live gateway keys are present and SDK is available, open native Razorpay popup directly
+      if (orderData.isConfigured && window.Razorpay) {
+        const options = {
+          key: orderData.keyId,
+          amount: orderData.amount,
+          currency: orderData.currency || 'INR',
+          name: 'TunnelSnap',
+          description: `${minutes}-Minute ${actionType === 'extend' ? 'Tunnel Extension' : 'Tunnel Pass'}`,
+          order_id: orderData.orderId,
+          prefill: {
+            name: currentUser?.name || 'Developer',
+            email: currentUser?.email || 'developer@pixorva.com',
+            contact: currentUser?.phone || ''
+          },
+          theme: {
+            color: '#e11d48'
+          },
+          handler: async function (response) {
+            showToast('Payment successful! Establishing tunnel...');
+            await verifyAndActivatePayment({
+              razorpay_order_id: response.razorpay_order_id,
+              razorpay_payment_id: response.razorpay_payment_id,
+              razorpay_signature: response.razorpay_signature,
+              planMinutes: minutes,
+              planName: `${minutes}-Min Pass`,
+              targetPort: selectedPort,
+              actionType: actionType
+            });
+          },
+          modal: {
+            ondismiss: function () {
+              if (btnLaunchTunnel) {
+                btnLaunchTunnel.disabled = false;
+                updateLaunchButtonText();
+              }
+            }
+          }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response) {
+          showAlertDialog({
+            title: 'Payment Failed',
+            message: response.error?.description || 'Transaction was declined or cancelled.'
+          });
+          if (btnLaunchTunnel) {
+            btnLaunchTunnel.disabled = false;
+            updateLaunchButtonText();
+          }
+        });
+        rzp.open();
+      } else {
+        // Fallback for Sandbox / Test Mode if live credentials not set
+        openPaymentModal(minutes, price, actionType);
+      }
+    } catch (err) {
+      console.error('[Razorpay Checkout Error]', err);
+      showAlertDialog({
+        title: 'Checkout Error',
+        message: err.message || 'Unable to open Razorpay gateway.'
+      });
+      if (btnLaunchTunnel) {
+        btnLaunchTunnel.disabled = false;
+        updateLaunchButtonText();
+      }
     }
   }
 
@@ -896,7 +993,7 @@
   // Extend Session (+ min)
   function extendSession(addMinutes, priceInr) {
     if (!currentSession) return;
-    openPaymentModal(addMinutes, priceInr, 'extend');
+    triggerDirectRazorpayCheckout(addMinutes, priceInr, 'extend');
   }
 
   // Revoke / Stop Session (Custom UI Dialog)
