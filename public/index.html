@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TunnelSnap - Global Access for Your Local Apps</title>
+  <meta name="description" content="Access locally hosted applications from anywhere, anytime for developers testing their products. 10 free passes, time-limited tunnels, and instant QR code sharing.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Red+Rose:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css?v=5.4">
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <header class="navbar">
+    <div class="nav-container">
+      <div class="nav-left">
+        <a href="#" class="brand-logo">
+          <div class="logo-blocks">
+            <span class="block b1"></span>
+            <span class="block b2"></span>
+            <span class="block b3"></span>
+          </div>
+          <span class="brand-name font-savage">Tunnel<span>Snap</span></span>
+        </a>
+
+        <nav class="nav-links">
+          <a href="#how-it-works">How It Works</a>
+          <a href="#console">Console</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#features">Features</a>
+        </nav>
+      </div>
+
+      <!-- Right Nav: Conditional on Login State -->
+      <div class="nav-right">
+        <!-- Logged Out View -->
+        <div class="nav-auth-logged-out" id="navLoggedOut">
+          <button class="free-credits-badge" id="btnNavGetFree" title="Create an account to get 10 free passes">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 4.8 0 0 1 12 8a4.8 4.8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/></svg>
+            <span>Get 10 Free Passes</span>
+          </button>
+          <button class="nav-btn-link" id="btnOpenLogin">Log in</button>
+          <button class="nav-btn-primary" id="btnOpenSignup">Create Account &rarr;</button>
+        </div>
+
+        <!-- Logged In View (Hidden until user logs in) -->
+        <div class="nav-auth-logged-in" id="navLoggedIn" style="display: none;">
+          <div class="free-credits-badge active" id="navCreditsBadge" title="Active Free Testing Passes">
+            <span class="live-dot pulse"></span>
+            <span id="navCreditsText">10 Free Passes Active</span>
+          </div>
+          <div class="user-profile-pill" id="userProfilePill">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            <span class="user-name-text" id="navUserName">Developer</span>
+          </div>
+          <button class="nav-btn-logout" id="btnLogout" title="Log out of account">Log out</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-container">
+
+      <h1 class="hero-title font-playfair font-savage">
+        Global access for your <span class="hero-highlight">local apps</span>
+      </h1>
+
+      <p class="hero-subtitle">
+        Access your locally hosted applications from anywhere, anytime on any mobile phone or remote computer.
+        Zero port-forwarding, time-limited auto-revocation, and instant QR code scanning for seamless developer testing.
+      </p>
+
+      <div class="hero-actions">
+        <a href="#console" class="hero-btn-primary" id="btnHeroCta">Open Developer Console &rarr;</a>
+        <a href="#how-it-works" class="hero-btn-secondary">See How It Works</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- HOW IT WORKS SECTION (Full, clear step-by-step developer guide) -->
+  <section class="how-section" id="how-it-works">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">STEP-BY-STEP WORKFLOW</span>
+        <h2 class="font-playfair font-savage">How TunnelSnap Works</h2>
+        <p>Test your local web application on any device across the globe in 4 simple steps.</p>
+      </div>
+
+      <div class="how-steps-grid">
+        
+        <!-- Step 1 -->
+        <div class="how-card">
+          <div class="how-step-num">01</div>
+          <div class="how-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          </div>
+          <h3>Run Your Local App</h3>
+          <p>Start your development server on your laptop as you normally do (e.g. Next.js on <code>:3000</code>, Vite on <code>:5173</code>, or Flask on <code>:5000</code>).</p>
+          <div class="how-code-pill">
+            <code>npm run dev</code>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="how-card">
+          <div class="how-step-num">02</div>
+          <div class="how-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3>Pick Duration & Pass</h3>
+          <p>Choose your testing time limit (5m, 15m, 30m, 1h, up to 3h). Use one of your <strong>10 Free Trial Passes</strong> or pay micro-rates starting at ₹5.</p>
+          <div class="how-tag-pill">
+            <span>10 Free Passes for Every Account</span>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="how-card">
+          <div class="how-step-num">03</div>
+          <div class="how-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <h3>Scan QR on Any Device</h3>
+          <p>Point any mobile phone camera (iPhone or Android) at the screen to open the app over <strong>Cellular 4G/5G or any Wi-Fi</strong>. Or copy the direct link for other laptops.</p>
+          <div class="how-tag-pill">
+            <span>Instant HTTP 200 • Zero 403 Errors</span>
+          </div>
+        </div>
+
+        <!-- Step 4 -->
+        <div class="how-card">
+          <div class="how-step-num">04</div>
+          <div class="how-icon-box">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3>Automatic Auto-Revoke</h3>
+          <p>When the live session timer hits zero, the tunnel automatically self-destructs and access is closed. Your local machine is never left exposed.</p>
+          <div class="how-tag-pill">
+            <span>Strict Max Cap: 3 Hours</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Redesigned High-End Visual Architecture Stage -->
+      <div class="architecture-stage">
+        <!-- Top Control Bar -->
+        <div class="arch-stage-header">
+          <div class="arch-stage-meta">
+            <div class="arch-live-badge">
+              <span class="live-dot pulse"></span>
+              <span>LIVE ARCHITECTURE TOPOLOGY</span>
+            </div>
+            <h3 class="arch-stage-title font-savage">Zero-Config Global Relay in Action</h3>
+            <p class="arch-stage-desc">Direct TCP tunnel streams your localhost to any cellular phone or remote browser across the world.</p>
+          </div>
+          <div class="arch-stage-actions">
+            <button class="btn-ping-sim" id="btnPingSim" type="button" title="Send a simulated test packet across the network">
+              <svg class="ping-icon" width="13" height="13" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+              <span>Simulate Data Stream</span>
+            </button>
+            <div class="ping-status-pill" id="pingStatusPill">
+              <span class="ping-status-dot"></span>
+              <span id="pingStatusText">Relay: 18ms • Ready</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- The Visual Diagram Canvas -->
+        <div class="arch-interactive-canvas">
+          
+          <!-- 1. Left Device: Host Laptop (Illustrated) -->
+          <div class="arch-card-device host-device">
+            <div class="device-card-header">
+              <span class="device-role-tag host-tag">SOURCE DEV MACHINE</span>
+              <div class="device-status-beacon">
+                <span class="beacon-dot"></span>
+                <span>Online</span>
+              </div>
+            </div>
+
+            <!-- Illustrated MacBook Laptop -->
+            <div class="laptop-illustration">
+              <div class="laptop-bezel">
+                <div class="laptop-camera"></div>
+                <div class="laptop-screen terminal-screen">
+                  <div class="term-header">
+                    <span class="term-btn red"></span>
+                    <span class="term-btn yellow"></span>
+                    <span class="term-btn green"></span>
+                    <span class="term-title">terminal — dev-server</span>
+                  </div>
+                  <div class="term-body">
+                    <div class="term-line prompt"><span class="term-path">~/my-app</span> <span class="term-cmd">npm run dev</span></div>
+                    <div class="term-line success">&gt; ready on <span class="term-link">http://localhost:3000</span></div>
+                    <div class="term-line dim">&gt; watching for file changes...</div>
+                    <div class="term-line cursor-line"><span class="term-caret"></span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="laptop-base">
+                <div class="laptop-notch"></div>
+              </div>
+            </div>
+
+            <div class="device-details">
+              <h4 class="device-name font-savage">Host Laptop</h4>
+              <p class="device-sub">Local development machine running Next.js, Vite, or Flask behind home/office NAT</p>
+              <div class="device-spec-row">
+                <span class="spec-tag">Target: localhost:3000</span>
+                <span class="spec-tag">Zero Port Forwarding</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Beam Connector 1 (Host to Cloud Edge) -->
+          <div class="arch-connector-channel" id="channelHostToEdge">
+            <div class="connector-track">
+              <div class="laser-beam" id="laserBeam1"></div>
+              <div class="laser-packet packet-primary" id="packet1"></div>
+              <div class="laser-packet packet-ghost" id="packet1b"></div>
+            </div>
+            <div class="connector-pill">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+              <span>Outbound TCP Tunnel</span>
+            </div>
+          </div>
+
+          <!-- 2. Center Node: TunnelSnap Cloud Edge Core -->
+          <div class="arch-card-device relay-core-device">
+            <div class="device-card-header">
+              <span class="device-role-tag relay-tag">TUNNELSNAP CLOUD RELAY</span>
+              <span class="relay-region-chip">bore.pub Global Edge</span>
+            </div>
+
+            <!-- Futuristic Holographic Core -->
+            <div class="cloud-core-visual">
+              <div class="orbital-ring ring-outer"></div>
+              <div class="orbital-ring ring-mid"></div>
+              <div class="core-reactor">
+                <div class="reactor-glow"></div>
+                <div class="reactor-icon">
+                  <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z"></path>
+                  </svg>
+                </div>
+              </div>
+            </div>
+
+            <div class="device-details text-center">
+              <h4 class="device-name font-savage">Global Ephemeral Relay</h4>
+              <p class="device-sub">High-throughput TCP tunnel proxy with strict time-locked auto-revocation</p>
+              
+              <div class="relay-specs-grid">
+                <div class="relay-stat">
+                  <span class="r-label">Direct Status</span>
+                  <span class="r-val success">HTTP 200 OK</span>
+                </div>
+                <div class="relay-stat">
+                  <span class="r-label">Phishing Wall</span>
+                  <span class="r-val">Zero 403 Gates</span>
+                </div>
+                <div class="relay-stat">
+                  <span class="r-label">Session Cap</span>
+                  <span class="r-val">Max 3 Hours</span>
+                </div>
+                <div class="relay-stat">
+                  <span class="r-label">Encryption</span>
+                  <span class="r-val">TLS 1.3 End-to-End</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Beam Connector 2 (Cloud Edge to Endpoints) -->
+          <div class="arch-connector-channel" id="channelEdgeToClients">
+            <div class="connector-track">
+              <div class="laser-beam" id="laserBeam2"></div>
+              <div class="laser-packet packet-cyan" id="packet2"></div>
+              <div class="laser-packet packet-ghost-cyan" id="packet2b"></div>
+            </div>
+            <div class="connector-pill">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+              <span>Instant Routing</span>
+            </div>
+          </div>
+
+          <!-- 3. Right Node: Connected Client Devices -->
+          <div class="arch-card-device client-devices-dual">
+            <div class="device-card-header">
+              <span class="device-role-tag client-tag">TARGET CLIENTS (ANY NETWORK)</span>
+              <div class="device-status-beacon">
+                <span class="beacon-dot beacon-cyan"></span>
+                <span>Worldwide</span>
+              </div>
+            </div>
+
+            <div class="dual-devices-wrapper">
+              <!-- Phone Device Illustration -->
+              <div class="mini-device-unit phone-unit">
+                <div class="phone-illustration">
+                  <div class="phone-speaker-island"></div>
+                  <div class="phone-screen">
+                    <div class="phone-url-bar">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      <span class="url-text">bore.pub:38421</span>
+                    </div>
+                    <div class="phone-app-preview">
+                      <div class="app-mockup-header">
+                        <div class="mockup-avatar"></div>
+                        <div class="mockup-line"></div>
+                      </div>
+                      <div class="mockup-btn-primary">Counter: 42</div>
+                      <div class="mockup-badge">Live QA Test</div>
+                    </div>
+                  </div>
+                  <div class="phone-home-indicator"></div>
+                </div>
+                <div class="unit-text">
+                  <div class="unit-title font-savage">Mobile Phone</div>
+                  <div class="unit-badges">
+                    <span class="ubadge cellular">Cellular 4G/5G</span>
+                    <span class="ubadge qr">Camera QR Scan</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Remote Laptop / Browser Device Illustration -->
+              <div class="mini-device-unit remote-laptop-unit">
+                <div class="remote-screen-illustration">
+                  <div class="browser-frame">
+                    <div class="browser-header">
+                      <span class="b-dot"></span><span class="b-dot"></span><span class="b-dot"></span>
+                      <span class="b-url">https://bore.pub:38421</span>
+                    </div>
+                    <div class="browser-preview">
+                      <div class="b-code-pill">200 OK • 1.2ms</div>
+                      <div class="b-grid-lines">
+                        <span></span><span></span><span></span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="unit-text">
+                  <div class="unit-title font-savage">Other Laptops</div>
+                  <div class="unit-badges">
+                    <span class="ubadge wifi">Any Wi-Fi</span>
+                    <span class="ubadge direct">Direct HTTPS Link</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="device-details border-top-subtle">
+              <p class="device-sub text-center">Accessible on cellular networks, coffee shop Wi-Fi, client offices, anywhere in the world without VPN or network configuration.</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Bottom Interactive Diagnostic Bar -->
+        <div class="arch-diag-bar">
+          <div class="diag-item">
+            <svg class="diag-icon" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            <span class="diag-title">Instant Setup:</span>
+            <span class="diag-val">1 Click • No CLI installation required</span>
+          </div>
+          <div class="diag-divider"></div>
+          <div class="diag-item">
+            <svg class="diag-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span class="diag-title">Protected:</span>
+            <span class="diag-val">Auto-terminates after timer runs out</span>
+          </div>
+          <div class="diag-divider"></div>
+          <div class="diag-item">
+            <svg class="diag-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            <span class="diag-title">Cross-Platform:</span>
+            <span class="diag-val">iOS, Android, macOS, Windows, Linux</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Main App Console Section -->
+  <main class="console-section" id="console">
+    <div class="console-container">
+
+      <!-- LOCKED CONSOLE STATE (Displayed when user is not logged in) -->
+      <div class="card console-locked-card" id="consoleLockedCard">
+        <div class="locked-icon-halo">
+          <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <h2 class="font-savage">Developer Console Locked</h2>
+        <p class="locked-subtitle">
+          Please log in or create a free account to access the tunnel console and activate your <strong>10 free testing passes</strong>.
+        </p>
+
+        <div class="locked-perks">
+          <div class="perk-pill">✓ 10 Free Passes (5 min each)</div>
+          <div class="perk-pill">✓ Any-network mobile QR codes</div>
+          <div class="perk-pill">✓ Zero credit card required</div>
+        </div>
+
+        <div class="locked-action-row">
+          <button class="hero-btn-primary" id="btnLockedLogin">Log In to Console</button>
+          <button class="hero-btn-secondary" id="btnLockedSignup">Create Free Account &rarr;</button>
+        </div>
+      </div>
+
+      <!-- UNLOCKED CONSOLE STATE (Displayed only when user is logged in) -->
+      <div class="unlocked-console-wrapper" id="consoleUnlockedWrapper" style="display: none;">
+        
+        <!-- Welcome / Account Banner -->
+        <div class="user-welcome-banner">
+          <div class="welcome-text">
+            <span class="welcome-greeting">Active Session for <strong id="userDisplayName">Developer</strong></span>
+            <span class="welcome-sub">Console is unlocked. You have <strong id="activePassCountLabel">10 Free Passes</strong> ready to use.</span>
+          </div>
+          <button class="btn-refresh-passes" id="btnRefreshHealth" title="Check server health">Check Server</button>
+        </div>
+
+        <!-- Interactive Controller Card -->
+        <div class="card console-card">
+          
+          <div class="console-header">
+            <div class="console-title-group">
+              <span class="step-badge">1</span>
+              <div>
+                <h2 class="font-savage">Tunnel Controller</h2>
+                <p>Configure your target port and select access duration</p>
+              </div>
+            </div>
+
+            <!-- Free Trial Tracker Banner -->
+            <div class="trial-tracker" id="trialTracker">
+              <div class="trial-info">
+                <strong>Active Free Passes:</strong>
+                <span id="trialPassCountText">10 of 10 Passes Remaining</span>
+              </div>
+              <div class="trial-bar">
+                <div class="trial-bar-fill" id="trialBarFill" style="width: 100%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="console-body">
+            
+            <!-- Port Selection -->
+            <div class="form-row">
+              <div class="form-col">
+                <label class="input-label">Target Localhost Port:</label>
+                <div class="port-input-wrapper">
+                  <span class="port-prefix">http://localhost:</span>
+                  <input type="number" id="portInput" value="3000" min="1" max="65535" placeholder="3000">
+                  <button class="btn-ping" id="btnPingLocal" title="Test if server is responding">Ping</button>
+                </div>
+
+                <!-- Quick Port Chips -->
+                <div class="quick-ports">
+                  <span class="quick-label">Presets:</span>
+                  <button class="port-chip active" data-port="3000">3000 <span>React/Next</span></button>
+                  <button class="port-chip" data-port="5173">5173 <span>Vite</span></button>
+                  <button class="port-chip" data-port="8080">8080 <span>Vue/Java</span></button>
+                  <button class="port-chip" data-port="5000">5000 <span>Flask</span></button>
+                  <button class="port-chip" data-port="8000">8000 <span>Django</span></button>
+                </div>
+
+                <!-- Health Status Pill -->
+                <div class="port-status-badge" id="portStatusBadge">
+                  <span id="statusIcon" class="status-indicator-dot"></span>
+                  <span id="statusText">Checking localhost:3000...</span>
+                </div>
+              </div>
+
+              <!-- Duration & Pricing Selector -->
+              <div class="form-col">
+                <label class="input-label">Access Duration (Definite Time Limit):</label>
+                
+                <div class="pricing-selector" id="pricingSelector">
+                  <!-- 5 Min Free -->
+                  <div class="price-option active" data-minutes="5" data-price="0" data-paidprice="5">
+                    <div class="option-header">
+                      <span class="opt-time">5 Min</span>
+                      <span class="opt-badge free-badge" id="badge5min">FREE PASS</span>
+                    </div>
+                    <div class="opt-price" id="price5min">₹0 <span>(Trial Pass)</span></div>
+                    <div class="opt-desc">Quick UI & QA check</div>
+                  </div>
+
+                  <!-- 15 Min (Most Popular) -->
+                  <div class="price-option" data-minutes="15" data-price="10" data-paidprice="10">
+                    <div class="option-header">
+                      <span class="opt-time">15 Min</span>
+                      <span class="opt-badge popular-badge">POPULAR</span>
+                    </div>
+                    <div class="opt-price">₹10</div>
+                    <div class="opt-desc">Feature & flow testing</div>
+                  </div>
+
+                  <!-- 30 Min -->
+                  <div class="price-option" data-minutes="30" data-price="25" data-paidprice="25">
+                    <div class="option-header">
+                      <span class="opt-time">30 Min</span>
+                    </div>
+                    <div class="opt-price">₹25</div>
+                    <div class="opt-desc">Full team testing</div>
+                  </div>
+
+                  <!-- 1 Hour -->
+                  <div class="price-option" data-minutes="60" data-price="45" data-paidprice="45">
+                    <div class="option-header">
+                      <span class="opt-time">1 Hour</span>
+                    </div>
+                    <div class="opt-price">₹45</div>
+                    <div class="opt-desc">Client presentation</div>
+                  </div>
+
+                  <!-- 2 Hours -->
+                  <div class="price-option" data-minutes="120" data-price="80" data-paidprice="80">
+                    <div class="option-header">
+                      <span class="opt-time">2 Hours</span>
+                    </div>
+                    <div class="opt-price">₹80</div>
+                    <div class="opt-desc">Extended debugging</div>
+                  </div>
+
+                  <!-- 3 Hours Max -->
+                  <div class="price-option" data-minutes="180" data-price="110" data-paidprice="110">
+                    <div class="option-header">
+                      <span class="opt-time">3 Hours</span>
+                      <span class="opt-badge max-badge">MAX</span>
+                    </div>
+                    <div class="opt-price">₹110</div>
+                    <div class="opt-desc">Full sprint review</div>
+                  </div>
+                </div>
+
+                <!-- Launch Action Button -->
+                <button class="btn-launch" id="btnLaunchTunnel">
+                  <span id="btnLaunchText">Launch 5-Min Free Session (Uses 1 Trial Pass)</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- ACTIVE LIVE SESSION CARD (Revealed when session is running) -->
+        <div class="card active-session-card" id="activeSessionCard" style="display: none;">
+          
+          <!-- Live Countdown Banner -->
+          <div class="session-timer-bar">
+            <div class="timer-left">
+              <span class="pulse-indicator"></span>
+              <div>
+                <div class="session-status-tag">TUNNEL LIVE • ACCESSIBLE OVER ANY NETWORK</div>
+                <div class="session-provider-tag" id="sessionPlanLabel">5-Minute Free Pass Active</div>
+              </div>
+            </div>
+
+            <div class="timer-display-box">
+              <div class="timer-label">SESSION TIME REMAINING</div>
+              <div class="timer-digits" id="liveTimerDigits">05:00</div>
+              <div class="timer-track">
+                <div class="timer-fill" id="liveTimerFill" style="width: 100%;"></div>
+              </div>
+            </div>
+
+            <div class="timer-btn-group">
+              <button class="btn-add-time" id="btnAdd5Min" title="Extend 5 min (+₹5)">+5 Min (₹5)</button>
+              <button class="btn-add-time" id="btnAdd15Min" title="Extend 15 min (+₹10)">+15 Min (₹10)</button>
+              <button class="btn-revoke" id="btnRevokeAccess">Revoke Access</button>
+            </div>
+          </div>
+
+          <!-- Session Content: QR on left, Direct Link on right -->
+          <div class="session-grid">
+            
+            <!-- Left: Mobile Phone QR Code -->
+            <div class="session-col qr-col">
+              <div class="col-pill">Mobile Phones & Tablets</div>
+              <h3 class="col-heading font-savage">Scan from Mobile Camera</h3>
+              <p class="col-info">Works on <strong>Cellular 4G/5G, Mobile Data, or Any Wi-Fi</strong>. Zero local router connection required.</p>
+
+              <div class="qr-canvas-box">
+                <div class="qr-target" id="liveQrTarget">
+                  <div class="qr-spinner">Generating secure QR...</div>
+                </div>
+                <div class="qr-meta">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  <span>Encrypted Public Endpoint • Zero 403 Walls</span>
+                </div>
+              </div>
+
+              <div class="qr-tools">
+                <button class="btn-tool" id="btnSaveQrPng">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                  Download PNG
+                </button>
+                <button class="btn-tool" id="btnFullscreenModal">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+                  Full Screen
+                </button>
+              </div>
+            </div>
+
+            <!-- Right: Direct Link for Laptops -->
+            <div class="session-col link-col">
+              <div class="col-pill laptop-pill">Other Laptops & Remote Testers</div>
+              <h3 class="col-heading font-savage">Direct Public Link</h3>
+              <p class="col-info">Send this link to anyone on a remote laptop, desktop, or tablet:</p>
+
+              <div class="public-url-card">
+                <div class="public-url-str" id="publicUrlStr">http://...</div>
+                <button class="btn-copy-link" id="btnCopyPublicUrl">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                  <span id="copyBtnLabel">Copy Link</span>
+                </button>
+              </div>
+
+              <div class="share-btn-row">
+                <a href="#" target="_blank" class="btn-open-ext" id="btnOpenExternal">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
+                  Open in Browser
+                </a>
+                <button class="btn-open-ext" id="btnNativeShare">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  Share / AirDrop
+                </button>
+              </div>
+
+              <!-- Terminal Snippet -->
+              <div class="terminal-box">
+                <div class="terminal-header">
+                  <span>Terminal test command:</span>
+                  <button class="btn-copy-code" id="btnCopyCurl">Copy</button>
+                </div>
+                <code id="curlSnippetCode">curl http://...</code>
+              </div>
+
+              <!-- Guarantees -->
+              <div class="guarantee-box">
+                <div class="guarantee-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span><strong>Zero Interstitial Walls:</strong> Direct stream to localhost with immediate response.</span>
+                </div>
+                <div class="guarantee-item">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span><strong>Auto-Revocation:</strong> Tunnel completely closes when timer runs out. Max 3 hours.</span>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        <!-- EXPIRED CARD -->
+        <div class="card expired-session-card" id="expiredSessionCard" style="display: none;">
+          <div class="expired-inner">
+            <div class="expired-icon-box">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <h3 class="font-savage">Session Completed</h3>
+            <p>Your time-limited tunnel has expired and public access was automatically closed.</p>
+            <button class="hero-btn-primary" id="btnRestartSession">Start New Session &rarr;</button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Pricing Table Section -->
+  <section class="pricing-section" id="pricing">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">TRANSPARENT PRICING</span>
+        <h2 class="font-playfair font-savage">Pay only for the testing time you need</h2>
+        <p>No monthly lock-ins. Every new account gets 10 free trial passes, followed by micro-passes in Indian Rupees (₹).</p>
+      </div>
+
+      <div class="pricing-cards-grid">
+        
+        <!-- Card 1: Free Trial -->
+        <div class="pricing-card">
+          <div class="card-tier font-playfair">Developer Free Trial</div>
+          <div class="card-cost font-playfair">₹0</div>
+          <div class="card-billing">10 Free Passes on Signup</div>
+          <p class="card-pitch">Ideal for quick visual checks, UI verification, and mobile smoke testing.</p>
+          <ul class="tier-features">
+            <li>✓ 10 Free Passes of 5 minutes each</li>
+            <li>✓ Works over any 4G/5G or remote Wi-Fi</li>
+            <li>✓ Dynamic QR code generator</li>
+            <li>✓ Zero credit card required</li>
+            <li>✓ Direct connection, zero 403 walls</li>
+          </ul>
+          <button class="tier-cta-btn secondary" id="btnPricingFreeCta">Get 10 Free Passes</button>
+        </div>
+
+        <!-- Card 2: Micro-Pass (Featured) -->
+        <div class="pricing-card featured">
+          <div class="featured-badge">MOST POPULAR</div>
+          <div class="card-tier font-playfair">Micro-Pass (Per Session)</div>
+          <div class="card-cost font-playfair">₹5 - ₹110</div>
+          <div class="card-billing">Pay-as-you-go per test session</div>
+          <p class="card-pitch">Flexible testing duration for when you need more time to test flows or demo to clients.</p>
+          <ul class="tier-features">
+            <li>✓ <strong>5 Min:</strong> ₹5 (after free passes)</li>
+            <li>✓ <strong>15 Min:</strong> ₹10</li>
+            <li>✓ <strong>30 Min:</strong> ₹25</li>
+            <li>✓ <strong>1 Hour:</strong> ₹45</li>
+            <li>✓ <strong>2 Hours:</strong> ₹80</li>
+            <li>✓ <strong>3 Hours (Max):</strong> ₹110</li>
+            <li>✓ Instant UPI QR code payment</li>
+            <li>✓ Extend time on the fly</li>
+          </ul>
+          <a href="#console" class="tier-cta-btn primary">Choose Duration in Console</a>
+        </div>
+
+        <!-- Card 3: Team Pass -->
+        <div class="pricing-card">
+          <div class="card-tier font-playfair">Dev Team Pass</div>
+          <div class="card-cost font-playfair">₹299</div>
+          <div class="card-billing">Monthly unlimited pass</div>
+          <p class="card-pitch">For active development teams conducting frequent QA, mobile testing, and reviews.</p>
+          <ul class="tier-features">
+            <li>✓ Unlimited 3-hour sessions</li>
+            <li>✓ Priority tunnel edge routing</li>
+            <li>✓ Multi-port simultaneous tunnels</li>
+            <li>✓ Custom branded subdomains</li>
+            <li>✓ Webhook inspector & replay</li>
+          </ul>
+          <button class="tier-cta-btn secondary" id="btnContactTeam">Upgrade to Dev Team</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="features-section" id="features">
+    <div class="section-container">
+      <div class="section-header">
+        <span class="section-tag">BUILT FOR DEVELOPERS</span>
+        <h2 class="font-savage">Why test with TunnelSnap?</h2>
+        <p>Traditional tunnels are slow, require complex CLI installs, or throw annoying 403 splash screens. TunnelSnap makes localhost testing effortless.</p>
+      </div>
+
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h3 class="font-savage">Global Any-Network Access</h3>
+          <p>Scan from any phone on cellular 4G/5G or access from any remote computer across the world without touching router firewall or port-forwarding.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+          </div>
+          <h3 class="font-savage">Instant QR Code Testing</h3>
+          <p>No more typing long random URLs on phone keyboards. Just point your iPhone or Android camera at the screen and test your responsive mobile design in 2 seconds.</p>
+        </div>
+
+        <div class="feature-card">
+          <div class="feature-icon-box">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3 class="font-savage">Time-Limited Auto-Revocation</h3>
+          <p>Never leave your development server exposed to the internet. Sessions automatically terminate when your timer finishes, with a strict max cap of 3 hours.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Interactive Razorpay Payment Modal -->
+  <div class="modal-backdrop" id="paymentModal">
+    <div class="payment-modal-card">
+      <button class="modal-close-btn" id="btnClosePaymentModal">&times;</button>
+      
+      <div class="payment-header">
+        <div class="payment-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        </div>
+        <h3 class="font-savage">Unlock <span id="payPlanName">15-Min Session</span></h3>
+        <p class="payment-sub">Instant Razorpay UPI, Cards & NetBanking Checkout</p>
+      </div>
+
+      <div class="payment-amount-box">
+        <span class="amt-label">Total to Pay:</span>
+        <span class="amt-val" id="payAmountVal">₹10</span>
+      </div>
+
+      <!-- Payment Gateway Info & UPI apps -->
+      <div class="upi-qr-box">
+        <div class="upi-mock-qr" id="upiQrTarget"></div>
+        <p class="upi-hint">Supported via Razorpay: UPI, Cards & NetBanking</p>
+        <div class="upi-apps-row">
+          <span class="upi-app-badge">GPay</span>
+          <span class="upi-app-badge">PhonePe</span>
+          <span class="upi-app-badge">Paytm</span>
+          <span class="upi-app-badge">BHIM</span>
+          <span class="upi-app-badge">Cards</span>
+        </div>
+      </div>
+
+      <!-- Status note regarding .env configuration -->
+      <div class="gateway-status-pill" id="gatewayStatusPill">
+        <span class="status-indicator-dot" id="gatewayStatusDot"></span>
+        <span id="gatewayStatusText">Razorpay Test Gateway Ready</span>
+      </div>
+
+      <button class="btn-complete-pay" id="btnRazorpayPay">
+        Pay <span id="payBtnAmountText">₹10</span> via Razorpay ->
+      </button>
+
+      <button type="button" class="btn-mock-pay" id="btnSimulatePayment">
+        Simulate Test Payment (Sandbox Instant)
+      </button>
+
+      <div class="pay-safe-note">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        256-bit Encrypted Checkout • Powered by Razorpay
+      </div>
+    </div>
+  </div>
+
+  <!-- AUTH MODAL (Support for both LOGIN and SIGN UP / CREATE ACCOUNT with Black BG) -->
+  <div class="modal-backdrop" id="authModal">
+    <div class="auth-modal-card">
+      <button class="modal-close-btn" id="btnCloseAuthModal" type="button">&times;</button>
+      
+      <div class="auth-logo-center">
+        <div class="logo-blocks small">
+          <span class="block b1"></span>
+          <span class="block b2"></span>
+          <span class="block b3"></span>
+        </div>
+      </div>
+
+      <h2 class="font-playfair font-savage" id="authModalTitle">Welcome Back</h2>
+      <p class="auth-sub" id="authModalSubtitle">Log in to unlock your developer console and active passes.</p>
+
+      <!-- Error / Validation Alert Banner -->
+      <div class="auth-error-alert" id="authErrorAlert" style="display: none;"></div>
+
+      <!-- Auth Mode Switcher Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab-btn active" id="tabModeLogin" type="button">Log In</button>
+        <button class="auth-tab-btn" id="tabModeSignup" type="button">Create Account</button>
+      </div>
+
+      <form id="authForm" class="auth-form" onsubmit="event.preventDefault();">
+        
+        <!-- Signup Row 1: Full Name & Mobile Number (2-Column) -->
+        <div class="auth-row-2col" id="authRow1" style="display: none;">
+          <div class="auth-field" id="authNameField">
+            <label>Full Name <span class="req-star">*</span></label>
+            <input type="text" id="authName" placeholder="e.g. Pranav Khandelwal" autocomplete="name">
+          </div>
+
+          <div class="auth-field" id="authPhoneField">
+            <label>Mobile Number <span class="req-star">*</span></label>
+            <div class="phone-input-group">
+              <span class="country-prefix">+91</span>
+              <input type="tel" id="authPhone" placeholder="98765 43210" maxlength="12" autocomplete="tel">
+            </div>
+          </div>
+        </div>
+
+        <!-- Row 2: Email & Role -->
+        <div class="auth-row-2col" id="authRow2">
+          <div class="auth-field" id="authEmailField">
+            <label>Email Address <span class="req-star">*</span></label>
+            <input type="email" id="authEmail" placeholder="developer@company.com" required value="developer@test.com" autocomplete="email">
+          </div>
+
+          <div class="auth-field" id="authRoleField" style="display: none;">
+            <label>Primary Role</label>
+            <select id="authRole">
+              <option value="Frontend Developer">Frontend Developer</option>
+              <option value="Fullstack Engineer">Fullstack Engineer</option>
+              <option value="Mobile QA & Testing">Mobile QA & Testing</option>
+              <option value="Freelancer / Agency">Freelancer / Agency</option>
+              <option value="Tech Lead / Founder">Tech Lead / Founder</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Row 3: Password & Confirm Password -->
+        <div class="auth-row-2col" id="authRow3">
+          <div class="auth-field" id="authPasswordField">
+            <label>Password <span class="req-star">*</span></label>
+            <input type="password" id="authPassword" placeholder="••••••••" required value="password123" autocomplete="current-password">
+          </div>
+
+          <div class="auth-field" id="authConfirmField" style="display: none;">
+            <label>Confirm Password <span class="req-star">*</span></label>
+            <input type="password" id="authConfirmPassword" placeholder="••••••••" autocomplete="new-password">
+          </div>
+        </div>
+
+        <div class="auth-links-row" id="authLinksRow">
+          <a href="#" class="auth-reset-link" id="btnForgotPw">Reset password</a>
+        </div>
+
+        <button type="submit" class="auth-submit-btn" id="btnSubmitAuth">Log In to Console &rarr;</button>
+
+        <div class="auth-divider">
+          <span>OR</span>
+        </div>
+
+        <button type="button" class="auth-google-btn" id="btnGoogleLogin">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.65v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.14z"/><path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.26v3.15C3.25 21.36 7.33 24 12 24z"/><path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.26C.46 8.16 0 9.94 0 12s.46 3.84 1.26 5.42l4.02-3.15z"/><path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.25 2.64 1.26 6.58l4.02 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/></svg>
+          <span id="btnGoogleText">Continue with Google</span>
+        </button>
+
+        <p class="auth-switch-note" id="authSwitchNote">
+          <span id="authSwitchPrompt">Don't have an account?</span> 
+          <a href="#" id="linkSwitchMode">Create one for free (10 Passes)</a>
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- Reusable UI-Based Confirmation & Alert Dialog (Zero Chrome Browser Popups) -->
+  <div class="modal-backdrop" id="confirmModal">
+    <div class="confirm-modal-card">
+      <div class="confirm-icon-box" id="confirmIcon" style="display: none;"></div>
+      <h3 class="font-playfair font-savage" id="confirmTitle">Confirm Action</h3>
+      <p class="confirm-desc" id="confirmDesc">Are you sure you want to proceed?</p>
+      
+      <div class="confirm-btn-row">
+        <button class="confirm-btn-cancel" id="btnConfirmCancel" type="button">Cancel</button>
+        <button class="confirm-btn-action" id="btnConfirmAction" type="button">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Fullscreen QR Modal -->
+  <div class="modal-backdrop" id="fullscreenQrModal">
+    <div class="fullscreen-qr-card">
+      <button class="modal-close-btn" id="btnCloseFullscreenQr">&times;</button>
+      <h3 class="font-savage">Scan to Access Application</h3>
+      <p class="fs-sub">Works on any phone over 4G/5G or any Wi-Fi</p>
+      <div class="fs-qr-box" id="fsQrContainer"></div>
+      <div class="fs-url" id="fsUrlText">http://...</div>
+      <div class="fs-timer-tag">
+        <span>Session Remaining:</span>
+        <strong id="fsTimerClock">--:--</strong>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast" id="toast">Copied to clipboard!</div>
+
+  <!-- Footer -->
+  <footer class="app-footer">
+    <div class="footer-container">
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <div class="logo-blocks small">
+            <span class="block b1"></span>
+            <span class="block b2"></span>
+            <span class="block b3"></span>
+          </div>
+          <span class="brand-name font-savage">Tunnel<span>Snap</span></span>
+        </div>
+        <p class="footer-tag">Global access for your local apps. Micro-priced for developers.</p>
+      </div>
+
+      <div class="footer-meta">
+        <p>&copy; 2026 TunnelSnap Inc. Built for developer productivity.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="app.js?v=5.2"></script>
+</body>
+</html>
