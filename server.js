@@ -47,6 +47,12 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
+// Legal & Policy Direct URLs (Redirect to client modal hash)
+app.get('/terms', (req, res) => res.redirect('/#terms'));
+app.get('/privacy', (req, res) => res.redirect('/#privacy'));
+app.get('/refund', (req, res) => res.redirect('/#refund'));
+app.get('/contact', (req, res) => res.redirect('/#contact'));
+
 // In-memory access logs
 const accessLogs = [];
 const MAX_LOGS = 60;

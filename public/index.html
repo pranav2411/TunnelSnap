@@ -966,10 +966,156 @@
   <!-- Toast Notification -->
   <div class="toast" id="toast">Copied to clipboard!</div>
 
-  <!-- Footer -->
+  <!-- Comprehensive Legal & Policy Modal (Terms & Conditions, Privacy Policy, Refund Policy, Contact) -->
+  <div class="modal-backdrop" id="legalModal">
+    <div class="legal-modal-card">
+      <button class="modal-close-btn" id="btnCloseLegalModal" type="button">&times;</button>
+      
+      <div class="legal-modal-header">
+        <div class="legal-badge">PIXORVA COMPLIANCE & LEGAL</div>
+        <h2 class="legal-title font-playfair" id="legalModalTitle">Terms & Conditions</h2>
+        <p class="legal-subtitle">Effective Date: September 2026 • Official policies for TunnelSnap, a product of Pixorva</p>
+      </div>
+
+      <!-- Legal Navigation Tabs -->
+      <div class="legal-tabs-bar">
+        <button class="legal-tab-btn active" id="tabLegalTerms" type="button">Terms & Conditions</button>
+        <button class="legal-tab-btn" id="tabLegalPrivacy" type="button">Privacy Policy</button>
+        <button class="legal-tab-btn" id="tabLegalRefund" type="button">Refund Policy</button>
+        <button class="legal-tab-btn" id="tabLegalContact" type="button">Contact & Grievance</button>
+      </div>
+
+      <!-- Legal Content Body -->
+      <div class="legal-body-content" id="legalContentArea">
+        
+        <!-- SECTION 1: TERMS & CONDITIONS -->
+        <div class="legal-section-view active" id="viewLegalTerms">
+          <h3 class="font-playfair">1. Acceptance of Terms</h3>
+          <p>By accessing or using TunnelSnap (<strong>tunnelsnap.pixorva.com</strong>), you agree to be bound by these Terms and Conditions. TunnelSnap is a developer utility operated as a proprietary product of <strong>Pixorva</strong> ("Company", "we", "us", or "our"). If you do not agree to all terms, you may not access or use the service.</p>
+
+          <h3 class="font-playfair">2. Description of Service</h3>
+          <p>TunnelSnap provides automated, encrypted, time-limited reverse proxy tunneling allowing software engineers and QA teams to expose locally running development applications (such as localhost servers on ports 3000, 5173, 8080, etc.) to the public internet for remote mobile smoke testing, responsiveness verification, and client previews.</p>
+
+          <h3 class="font-playfair">3. Micro-Passes & Billing</h3>
+          <p>TunnelSnap operates on an on-demand micro-pass business model:</p>
+          <ul>
+            <li>Every newly registered developer account receives 10 promotional Free Trial Passes of 5 minutes each.</li>
+            <li>Paid testing sessions are billed as prepaid micro-passes in Indian Rupees (₹) via the Razorpay payment gateway (e.g., 5-min: ₹5, 15-min: ₹10, 30-min: ₹25, 1-hour: ₹45, 2-hours: ₹80, up to a strict maximum session cap of 3 hours: ₹110).</li>
+            <li>All transactions are final upon successful tunnel instantiation. Payments are processed securely under the registered business entity <strong>Pixorva</strong>.</li>
+          </ul>
+
+          <h3 class="font-playfair">4. Prohibited Uses & Acceptable Use Policy</h3>
+          <p>TunnelSnap is strictly designated for legitimate software development, QA testing, and software demonstrations. Users may not use TunnelSnap to:</p>
+          <ul>
+            <li>Host phishing pages, credential harvesters, or deceptive login interfaces.</li>
+            <li>Distribute malware, trojans, ransomware, or malicious executables.</li>
+            <li>Facilitate unauthorized intrusion, DDoS relays, or network scans.</li>
+            <li>Distribute illegal, infringing, or harmful media.</li>
+          </ul>
+          <p>Any violation will result in instantaneous session termination, IP ban, and permanent revocation of account credentials without refund.</p>
+
+          <h3 class="font-playfair">5. Automated Expiration & Security Safeguards</h3>
+          <p>All active tunnels are architected with strict, server-enforced countdown timers. When a session's purchased minutes expire, all public routing interfaces are immediately torn down, ensuring no local development environment is left inadvertently exposed to the public internet.</p>
+
+          <h3 class="font-playfair">6. Limitation of Liability</h3>
+          <p>TunnelSnap and Pixorva provide this service on an "as is" and "as available" basis for staging and testing purposes. We make no warranty that tunnel routing will be uninterrupted or error-free, and shall not be liable for any indirect, incidental, or consequential damages.</p>
+
+          <h3 class="font-playfair">7. Governing Law</h3>
+          <p>These terms shall be governed by and construed in accordance with the laws of India, subject to the exclusive jurisdiction of the competent courts.</p>
+        </div>
+
+        <!-- SECTION 2: PRIVACY POLICY -->
+        <div class="legal-section-view" id="viewLegalPrivacy">
+          <h3 class="font-playfair">1. Data Controller Information</h3>
+          <p>This Privacy Policy outlines how <strong>Pixorva</strong> collects, handles, and protects information gathered through <strong>TunnelSnap</strong> (tunnelsnap.pixorva.com). We are committed to transparency, minimal data collection, and developer privacy.</p>
+
+          <h3 class="font-playfair">2. Information We Collect</h3>
+          <ul>
+            <li><strong>Account Details:</strong> Email address, user name, and optional phone number provided during account creation for account authentication and transaction receipts.</li>
+            <li><strong>Session Metadata:</strong> Target port number (e.g., 3000), session start time, allocated duration (minutes), and generated tunnel domain/URL.</li>
+            <li><strong>Access Diagnostic Logs:</strong> Device connection timestamps, remote request IP addresses, and HTTP status codes for real-time traffic monitoring on your developer dashboard.</li>
+          </ul>
+
+          <h3 class="font-playfair">3. Zero Packet Inspection & Zero Payload Storage</h3>
+          <p>TunnelSnap acts as a blind, encrypted TCP and HTTP relay between your localhost machine and remote testing devices. <strong>We do not inspect, log, intercept, or store the body payloads, headers, cookies, API tokens, or data transmitted through your tunnel.</strong> Once packets reach their destination, they are never retained on our servers.</p>
+
+          <h3 class="font-playfair">4. Payment Processing via Razorpay</h3>
+          <p>All monetary payments are handled directly by our certified payment gateway partner, <strong>Razorpay Software Private Limited</strong>. Pixorva and TunnelSnap do not store, view, or process your credit/debit card numbers, CVVs, or UPI PINs. Razorpay complies with PCI-DSS Level 1 security standards.</p>
+
+          <h3 class="font-playfair">5. Data Retention & Deletion</h3>
+          <p>Session diagnostic logs are stored purely in transient memory for up to 60 events and are wiped upon session expiration. You may request complete account deletion at any time by contacting <strong>support@pixorva.com</strong>.</p>
+        </div>
+
+        <!-- SECTION 3: REFUND POLICY -->
+        <div class="legal-section-view" id="viewLegalRefund">
+          <h3 class="font-playfair">1. Digital Nature of Micro-Passes</h3>
+          <p>TunnelSnap provides immediate digital provisioning of edge tunneling bandwidth upon successful payment. Micro-passes (₹5 to ₹110) are consumed in real-time as your session timer progresses.</p>
+
+          <h3 class="font-playfair">2. Refund Eligibility & Service Guarantee</h3>
+          <p>We want every developer to have a flawless testing experience. You are entitled to a full refund or equivalent credit passes if:</p>
+          <ul>
+            <li>A payment was charged, but the tunnel failed to establish due to an infrastructure outage on our servers.</li>
+            <li>Duplicate charges occurred during checkout due to a network glitch.</li>
+            <li>The tunnel relay experienced sustained server-side downtime during your paid session.</li>
+          </ul>
+
+          <h3 class="font-playfair">3. How to Request a Refund</h3>
+          <p>To request a refund, please email <strong>support@pixorva.com</strong> with:</p>
+          <ul>
+            <li>Your registered account email</li>
+            <li>Razorpay Payment ID (e.g., <code>pay_...</code>)</li>
+            <li>Date and time of the transaction</li>
+          </ul>
+          <p>Approved refunds are processed back to the original payment source (UPI, Card, or NetBanking) within 5–7 business days per banking regulations.</p>
+        </div>
+
+        <!-- SECTION 4: CONTACT & GRIEVANCE -->
+        <div class="legal-section-view" id="viewLegalContact">
+          <h3 class="font-playfair">Contact Pixorva & Grievance Officer</h3>
+          <p>For technical support, billing inquiries, enterprise passes, or compliance matters regarding TunnelSnap, reach out through any of the following channels:</p>
+
+          <div class="contact-details-box">
+            <div class="contact-item">
+              <span class="contact-label">Company:</span>
+              <span class="contact-value">Pixorva</span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">Product:</span>
+              <span class="contact-value">TunnelSnap</span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">Official Website:</span>
+              <span class="contact-value"><a href="https://pixorva.com" target="_blank" rel="noopener">https://pixorva.com</a></span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">Support Email:</span>
+              <span class="contact-value"><a href="mailto:support@pixorva.com">support@pixorva.com</a></span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">Business Inquiries:</span>
+              <span class="contact-value"><a href="mailto:team@pixorva.com">team@pixorva.com</a></span>
+            </div>
+            <div class="contact-item">
+              <span class="contact-label">Response Time:</span>
+              <span class="contact-value">Within 24 business hours</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="legal-modal-footer">
+        <button class="hero-btn-primary small-btn" id="btnCloseLegalBottom" type="button">Understood & Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer with Pixorva Brand Equity, Policies & Direct Legal Links -->
   <footer class="app-footer">
     <div class="footer-container">
-      <div class="footer-brand">
+      
+      <!-- Column 1: Brand & Pixorva Badges -->
+      <div class="footer-brand-col">
         <div class="brand-logo">
           <div class="logo-blocks small">
             <span class="block b1"></span>
@@ -978,15 +1124,75 @@
           </div>
           <span class="brand-name font-savage">Tunnel<span>Snap</span></span>
         </div>
-        <p class="footer-tag">Global access for your local apps. Micro-priced for developers.</p>
+
+        <!-- Official Pixorva Product Badges -->
+        <div class="pixorva-badges-wrap">
+          <span class="pixorva-product-pill">A Product of Pixorva</span>
+          <span class="pixorva-powered-pill">Powered by Pixorva</span>
+        </div>
+
+        <p class="footer-tag">Global access for your local applications. Micro-priced for developers with zero router firewall friction.</p>
+
+        <div class="gateway-secure-tag">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          <span>Secured by Razorpay • UPI, Cards & NetBanking</span>
+        </div>
       </div>
 
-      <div class="footer-meta">
-        <p>&copy; 2026 TunnelSnap Inc. Built for developer productivity.</p>
+      <!-- Column 2: Product & Tools -->
+      <div class="footer-nav-col">
+        <h4 class="footer-col-title font-playfair">Product</h4>
+        <ul class="footer-link-list">
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#console">Developer Console</a></li>
+          <li><a href="#pricing">Transparent Pricing</a></li>
+          <li><a href="#features">Edge Routing</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 3: Legal & Compliance (Razorpay Mandated) -->
+      <div class="footer-nav-col">
+        <h4 class="footer-col-title font-playfair">Legal & Policies</h4>
+        <ul class="footer-link-list">
+          <li><a href="#terms" class="legal-trigger" data-target="terms">Terms & Conditions</a></li>
+          <li><a href="#privacy" class="legal-trigger" data-target="privacy">Privacy Policy</a></li>
+          <li><a href="#refund" class="legal-trigger" data-target="refund">Refund & Cancellation</a></li>
+          <li><a href="#contact" class="legal-trigger" data-target="contact">Contact & Grievance</a></li>
+        </ul>
+      </div>
+
+      <!-- Column 4: Pixorva Network -->
+      <div class="footer-nav-col">
+        <h4 class="footer-col-title font-playfair">Pixorva</h4>
+        <ul class="footer-link-list">
+          <li><a href="https://pixorva.com" target="_blank" rel="noopener">Pixorva Home</a></li>
+          <li><a href="mailto:support@pixorva.com">support@pixorva.com</a></li>
+          <li><a href="mailto:team@pixorva.com">Partner with Us</a></li>
+          <li><span class="uptime-dot-text"><span class="status-indicator-dot live"></span> Systems Operational</span></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Copyright Sub-Bar -->
+    <div class="footer-bottom-bar">
+      <div class="footer-bottom-inner">
+        <p class="copyright-text">
+          &copy; 2026 <strong>TunnelSnap</strong>. All rights reserved. <strong>A Product of Pixorva</strong> • <strong>Powered by Pixorva</strong>.
+        </p>
+        <div class="footer-legal-quick-row">
+          <a href="#terms" class="legal-trigger" data-target="terms">Terms</a>
+          <span class="sep">&bull;</span>
+          <a href="#privacy" class="legal-trigger" data-target="privacy">Privacy</a>
+          <span class="sep">&bull;</span>
+          <a href="#refund" class="legal-trigger" data-target="refund">Refunds</a>
+          <span class="sep">&bull;</span>
+          <a href="https://pixorva.com" target="_blank" rel="noopener">pixorva.com</a>
+        </div>
       </div>
     </div>
   </footer>
 
-  <script src="app.js?v=5.2"></script>
+  <script src="app.js?v=5.5"></script>
 </body>
 </html>

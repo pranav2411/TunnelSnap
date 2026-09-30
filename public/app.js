@@ -125,6 +125,20 @@
   const fsUrlText = document.getElementById('fsUrlText');
   const fsTimerClock = document.getElementById('fsTimerClock');
 
+  // Legal & Compliance Modal (Pixorva)
+  const legalModal = document.getElementById('legalModal');
+  const btnCloseLegalModal = document.getElementById('btnCloseLegalModal');
+  const btnCloseLegalBottom = document.getElementById('btnCloseLegalBottom');
+  const legalModalTitle = document.getElementById('legalModalTitle');
+  const tabLegalTerms = document.getElementById('tabLegalTerms');
+  const tabLegalPrivacy = document.getElementById('tabLegalPrivacy');
+  const tabLegalRefund = document.getElementById('tabLegalRefund');
+  const tabLegalContact = document.getElementById('tabLegalContact');
+  const viewLegalTerms = document.getElementById('viewLegalTerms');
+  const viewLegalPrivacy = document.getElementById('viewLegalPrivacy');
+  const viewLegalRefund = document.getElementById('viewLegalRefund');
+  const viewLegalContact = document.getElementById('viewLegalContact');
+
   // Toast
   const toast = document.getElementById('toast');
 
@@ -213,6 +227,7 @@
     setupEventListeners();
     await checkExistingSession();
     checkTargetHealth();
+    checkLegalHash();
   }
 
   // Load User Authentication State
@@ -1176,6 +1191,66 @@
         closeConfirmModal();
       }
     });
+
+    // Legal Modal Listeners
+    btnCloseLegalModal?.addEventListener('click', closeLegalModal);
+    btnCloseLegalBottom?.addEventListener('click', closeLegalModal);
+    legalModal?.addEventListener('click', (e) => {
+      if (e.target === legalModal) closeLegalModal();
+    });
+
+    tabLegalTerms?.addEventListener('click', () => switchLegalTab('terms'));
+    tabLegalPrivacy?.addEventListener('click', () => switchLegalTab('privacy'));
+    tabLegalRefund?.addEventListener('click', () => switchLegalTab('refund'));
+    tabLegalContact?.addEventListener('click', () => switchLegalTab('contact'));
+
+    document.querySelectorAll('.legal-trigger').forEach(trigger => {
+      trigger.addEventListener('click', (e) => {
+        e.preventDefault();
+        const tab = trigger.dataset.target || 'terms';
+        openLegalModal(tab);
+      });
+    });
+
+    window.addEventListener('hashchange', checkLegalHash);
+  }
+
+  // Legal Modal Functions (Pixorva Policies)
+  function openLegalModal(tab = 'terms') {
+    if (!legalModal) return;
+    switchLegalTab(tab);
+    legalModal.classList.add('active');
+  }
+
+  function closeLegalModal() {
+    if (legalModal) legalModal.classList.remove('active');
+  }
+
+  function switchLegalTab(tab) {
+    const tabs = {
+      terms: { btn: tabLegalTerms, view: viewLegalTerms, title: 'Terms & Conditions' },
+      privacy: { btn: tabLegalPrivacy, view: viewLegalPrivacy, title: 'Privacy Policy' },
+      refund: { btn: tabLegalRefund, view: viewLegalRefund, title: 'Refund Policy' },
+      contact: { btn: tabLegalContact, view: viewLegalContact, title: 'Contact & Grievance' }
+    };
+
+    Object.keys(tabs).forEach(k => {
+      tabs[k].btn?.classList.remove('active');
+      tabs[k].view?.classList.remove('active');
+    });
+
+    const activeItem = tabs[tab] || tabs.terms;
+    activeItem.btn?.classList.add('active');
+    activeItem.view?.classList.add('active');
+    if (legalModalTitle) legalModalTitle.textContent = activeItem.title;
+  }
+
+  function checkLegalHash() {
+    const hash = window.location.hash.toLowerCase();
+    if (hash === '#terms') openLegalModal('terms');
+    else if (hash === '#privacy') openLegalModal('privacy');
+    else if (hash === '#refund') openLegalModal('refund');
+    else if (hash === '#contact') openLegalModal('contact');
   }
 
   // DOM Ready
