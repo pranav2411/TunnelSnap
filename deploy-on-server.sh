@@ -13,13 +13,23 @@ echo "[1/5] Setting up $APP_DIR..."
 sudo mkdir -p "$APP_DIR"
 sudo chown -R $USER:$USER "$APP_DIR"
 
-# 2. Extract application files
+# 2. Get application files (via archive or git clone)
 if [ -f "/tmp/tunnelsnap-deploy.tar.gz" ]; then
     tar -xzf /tmp/tunnelsnap-deploy.tar.gz -C "$APP_DIR"
     echo "Extracted files to $APP_DIR"
+elif [ -d "$APP_DIR/.git" ]; then
+    cd "$APP_DIR"
+    git pull origin main
+else
+    git clone https://github.com/pranav2411/TunnelSnap.git "$APP_DIR"
 fi
 
 cd "$APP_DIR"
+
+# Ensure .env exists
+if [ ! -f "$APP_DIR/.env" ]; then
+    cp "$APP_DIR/.env.example" "$APP_DIR/.env" 2>/dev/null || echo "PORT=4050" > "$APP_DIR/.env"
+fi
 
 # 3. Install Node.js dependencies
 echo "[2/5] Installing production npm packages..."
