@@ -8,9 +8,16 @@ const { spawn } = require('child_process');
 const QRCode = require('qrcode');
 const Razorpay = require('razorpay');
 const localtunnel = require('localtunnel');
+const { WebSocketServer, WebSocket } = require('ws');
 
 const app = express();
 const server = http.createServer(app);
+const wss = new WebSocketServer({ noServer: true });
+
+// Active developer sessions: sessionId -> session object
+const activeSessions = new Map();
+// Pending HTTP requests awaiting relay response: requestId -> { req, res, timeout }
+const pendingRelayRequests = new Map();
 
 const PORT = process.env.PORT || 4050;
 
@@ -53,6 +60,188 @@ app.get('/terms', (req, res) => res.redirect('/#terms'));
 app.get('/privacy', (req, res) => res.redirect('/#privacy'));
 app.get('/refund', (req, res) => res.redirect('/#refund'));
 app.get('/contact', (req, res) => res.redirect('/#contact'));
+
+// WebSocket Upgrade Handler for In-Browser Relay
+server.on('upgrade', (request, socket, head) => {
+  const host = request.headers.host || 'localhost';
+  const parsedUrl = new URL(request.url, `http://${host}`);
+
+  if (parsedUrl.pathname === '/api/relay-ws') {
+    wss.handleUpgrade(request, socket, head, (ws) => {
+      wss.emit('connection', ws, request);
+    });
+  } else {
+    socket.destroy();
+  }
+});
+
+// WebSocket Connection from Developer's Browser Tab
+wss.on('connection', (ws, req) => {
+  const host = req.headers.host || 'localhost';
+  const parsedUrl = new URL(req.url, `http://${host}`);
+  const sessionId = parsedUrl.searchParams.get('sessionId') || 'default';
+  const targetPort = parseInt(parsedUrl.searchParams.get('targetPort'), 10) || 3000;
+
+  console.log(`[Relay WS] Developer browser connected for session [${sessionId}] targeting localhost:${targetPort}`);
+
+  let session = activeSessions.get(sessionId);
+  if (!session) {
+    session = {
+      id: sessionId,
+      active: true,
+      targetPort: targetPort,
+      ws: ws,
+      terminalCommand: `bore local ${targetPort} --to bore.pub`,
+      terminalCommandAlt: `npx -y localtunnel --port ${targetPort}`
+    };
+    activeSessions.set(sessionId, session);
+  } else {
+    session.ws = ws;
+    session.targetPort = targetPort;
+  }
+
+  ws.on('message', (message) => {
+    try {
+      const data = JSON.parse(message.toString());
+      if (data.type === 'HTTP_RESPONSE') {
+        const pending = pendingRelayRequests.get(data.requestId);
+        if (pending) {
+          clearTimeout(pending.timeout);
+          pendingRelayRequests.delete(data.requestId);
+
+          pending.res.status(data.status || 200);
+
+          if (data.headers) {
+            Object.entries(data.headers).forEach(([k, v]) => {
+              const lower = k.toLowerCase();
+              if (!['content-encoding', 'transfer-encoding', 'connection', 'content-length'].includes(lower)) {
+                try { pending.res.setHeader(k, v); } catch (e) {}
+              }
+            });
+          }
+
+          let responseBody = data.body || '';
+
+          // If HTML response, inject <base href="/live/sessionId/"> so relative scripts/styles load properly
+          const contentType = pending.res.getHeader('content-type') || '';
+          if (typeof responseBody === 'string' && contentType.includes('text/html')) {
+            const baseTag = `<base href="/live/${sessionId}/">`;
+            if (responseBody.includes('<head>')) {
+              responseBody = responseBody.replace('<head>', `<head>${baseTag}`);
+            } else if (responseBody.includes('<html>')) {
+              responseBody = responseBody.replace('<html>', `<html><head>${baseTag}</head>`);
+            } else {
+              responseBody = `${baseTag}${responseBody}`;
+            }
+          }
+
+          if (data.isBase64 && responseBody) {
+            pending.res.send(Buffer.from(responseBody, 'base64'));
+          } else {
+            pending.res.send(responseBody);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('[Relay WS] Error processing message from developer:', e);
+    }
+  });
+
+  ws.on('close', () => {
+    console.log(`[Relay WS] Developer browser tab disconnected for session [${sessionId}]`);
+    if (session && session.ws === ws) {
+      session.ws = null;
+    }
+  });
+});
+
+// Public Live Tunnel Gateway: Access localhost through developer's browser relay
+app.all('/live/:sessionId*', (req, res) => {
+  const sessionId = req.params.sessionId;
+  const session = activeSessions.get(sessionId);
+
+  if (!session || !session.active) {
+    return res.status(404).send(`
+      <!DOCTYPE html>
+      <html>
+      <head><title>Session Ended - TunnelSnap</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+      <body style="font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; text-align: center; padding: 20px;">
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+          <h2 style="color: #e11d48; margin-top: 0;">Session Completed or Inactive</h2>
+          <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6;">This developer preview session has timed out or was closed.</p>
+          <a href="/" style="display: inline-block; margin-top: 16px; background: #e11d48; color: #fff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600;">Launch New Tunnel &rarr;</a>
+        </div>
+      </body>
+      </html>
+    `);
+  }
+
+  // If Browser Relay is actively connected via WebSocket
+  if (session.ws && session.ws.readyState === WebSocket.OPEN) {
+    const requestId = crypto.randomUUID();
+    const timeout = setTimeout(() => {
+      pendingRelayRequests.delete(requestId);
+      if (!res.headersSent) {
+        res.status(504).send(`
+          <!DOCTYPE html>
+          <html>
+          <head><title>Gateway Timeout - TunnelSnap</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+          <body style="font-family: system-ui, sans-serif; padding: 40px; text-align: center; background: #0f172a; color: #fff;">
+            <h2 style="color: #f59e0b;">504 Gateway Timeout</h2>
+            <p style="color: #94a3b8;">The developer's browser tab is open, but did not receive a response from <strong>localhost:${session.targetPort}</strong> in time.</p>
+            <p style="color: #cbd5e1;">Make sure the developer's local dev server is currently running on port ${session.targetPort}.</p>
+          </body>
+          </html>
+        `);
+      }
+    }, 15000);
+
+    pendingRelayRequests.set(requestId, { req, res, timeout });
+
+    const prefix = `/live/${sessionId}`;
+    let subUrl = req.originalUrl;
+    if (subUrl.startsWith(prefix)) {
+      subUrl = subUrl.substring(prefix.length) || '/';
+    }
+
+    addAccessLog({
+      clientIp: req.ip || 'Remote Tester',
+      device: req.headers['user-agent']?.includes('Mobile') ? 'Mobile Phone' : 'Remote Tester',
+      deviceType: 'remote',
+      target: session.url,
+      action: `${req.method} ${subUrl}`
+    });
+
+    session.ws.send(JSON.stringify({
+      type: 'HTTP_REQUEST',
+      requestId,
+      method: req.method,
+      url: subUrl,
+      headers: req.headers,
+      body: req.body
+    }));
+  } else {
+    // Waiting for Developer Connection
+    res.status(503).send(`
+      <!DOCTYPE html>
+      <html>
+      <head><title>Connecting to Developer - TunnelSnap</title><meta name="viewport" content="width=device-width, initial-scale=1"></head>
+      <body style="font-family: system-ui, -apple-system, sans-serif; background: #0f172a; color: #f8fafc; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; text-align: center; padding: 20px;">
+        <div style="background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); border-radius: 16px; padding: 40px; max-width: 480px; box-shadow: 0 20px 40px rgba(0,0,0,0.5);">
+          <div style="display: inline-block; width: 14px; height: 14px; border-radius: 50%; background: #f59e0b; margin-bottom: 12px; box-shadow: 0 0 12px #f59e0b;"></div>
+          <h2 style="color: #f8fafc; margin-top: 0;">Waiting for Developer to Connect</h2>
+          <p style="color: #94a3b8; font-size: 0.95rem; line-height: 1.6;">
+            The tunnel session is allocated, but the developer's laptop hasn't connected yet.<br><br>
+            <strong>If you are the developer:</strong><br>
+            &bull; Keep your <strong>tunnelsnap.pixorva.com</strong> browser tab open (Browser Relay)<br>
+            &bull; OR run: <code>${session.terminalCommand}</code>
+          </p>
+        </div>
+      </body>
+      </html>
+    `);
+  }
+});
 
 // In-memory access logs
 const accessLogs = [];
@@ -334,58 +523,61 @@ app.get('/api/tunnel/status', (req, res) => {
   });
 });
 
-// REST API: Start Global Time-Limited Tunnel Session
+// REST API: Start Global Time-Limited Tunnel Session (Dual Mode: Browser Relay + Terminal Command)
 app.post('/api/tunnel/start', async (req, res) => {
   const targetPort = parseInt(req.body.targetPort, 10) || 3000;
-  // Maximum allowed duration: 180 minutes (3 hours)
   const durationMinutes = Math.min(180, Math.max(1, parseInt(req.body.durationMinutes, 10) || 5));
   const planName = req.body.planName || (durationMinutes === 5 ? '5-Min Free Pass' : `${durationMinutes}-Min Paid Pass`);
 
-  if (activeSession.active) {
-    stopActiveSession('restarted');
-  }
+  const sessionId = `snap_${Math.random().toString(36).substring(2, 8)}`;
+  const now = Date.now();
+  const expiresAt = now + durationMinutes * 60 * 1000;
 
-  try {
-    const tunnelResult = await startTunnel(targetPort);
+  const protocol = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
+  const host = req.headers.host || 'tunnelsnap.pixorva.com';
+  const liveUrl = `${protocol}://${host}/live/${sessionId}`;
 
-    const now = Date.now();
-    const expiresAt = now + durationMinutes * 60 * 1000;
+  const sessionObj = {
+    id: sessionId,
+    active: true,
+    url: liveUrl,
+    provider: 'TunnelSnap Dual Relay',
+    targetPort: targetPort,
+    durationMinutes: durationMinutes,
+    startedAt: now,
+    expiresAt: expiresAt,
+    ws: null,
+    terminalCommand: `bore local ${targetPort} --to bore.pub`,
+    terminalCommandAlt: `npx -y localtunnel --port ${targetPort}`,
+    timerId: setTimeout(() => {
+      stopActiveSession('expired');
+      activeSessions.delete(sessionId);
+    }, durationMinutes * 60 * 1000)
+  };
 
-    activeSession = {
-      active: true,
-      url: tunnelResult.url,
-      provider: tunnelResult.provider,
-      targetPort: targetPort,
-      durationMinutes: durationMinutes,
-      startedAt: now,
-      expiresAt: expiresAt,
-      process: tunnelResult.process || null,
-      timerId: setTimeout(() => {
-        stopActiveSession('expired');
-      }, durationMinutes * 60 * 1000)
-    };
+  activeSessions.set(sessionId, sessionObj);
+  activeSession = sessionObj;
 
-    addAccessLog({
-      clientIp: 'Global Web',
-      device: `TunnelSnap (${planName})`,
-      deviceType: 'global',
-      target: tunnelResult.url,
-      action: `Live for ${durationMinutes} minutes`
-    });
+  addAccessLog({
+    clientIp: req.ip || 'Developer',
+    device: `TunnelSnap (${planName})`,
+    deviceType: 'global',
+    target: liveUrl,
+    action: `Allocated tunnel for ${durationMinutes} min`
+  });
 
-    res.json({
-      success: true,
-      url: tunnelResult.url,
-      provider: tunnelResult.provider,
-      targetPort: targetPort,
-      durationMinutes: durationMinutes,
-      expiresAt: expiresAt,
-      remainingSeconds: durationMinutes * 60
-    });
-  } catch (err) {
-    console.error('Failed to start tunnel:', err);
-    res.status(500).json({ error: `Could not start tunnel: ${err.message}` });
-  }
+  res.json({
+    success: true,
+    sessionId: sessionId,
+    url: liveUrl,
+    provider: 'TunnelSnap Dual Relay',
+    targetPort: targetPort,
+    durationMinutes: durationMinutes,
+    expiresAt: expiresAt,
+    remainingSeconds: durationMinutes * 60,
+    terminalCommand: `bore local ${targetPort} --to bore.pub`,
+    terminalCommandAlt: `npx -y localtunnel --port ${targetPort}`
+  });
 });
 
 // REST API: Extend Active Session (+ minutes)
@@ -568,45 +760,55 @@ app.post('/api/payment/verify', async (req, res) => {
       const duration = parseInt(planMinutes, 10) || 15;
       const port = parseInt(targetPort, 10) || 3000;
 
-      if (activeSession.active) {
-        stopActiveSession('restarted');
-      }
-
-      const tunnelResult = await startTunnel(port);
+      const sessionId = `snap_${Math.random().toString(36).substring(2, 8)}`;
       const now = Date.now();
       const expiresAt = now + duration * 60 * 1000;
 
-      activeSession = {
+      const protocol = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
+      const host = req.headers.host || 'tunnelsnap.pixorva.com';
+      const liveUrl = `${protocol}://${host}/live/${sessionId}`;
+
+      const sessionObj = {
+        id: sessionId,
         active: true,
-        url: tunnelResult.url,
-        provider: tunnelResult.provider,
+        url: liveUrl,
+        provider: 'TunnelSnap Dual Relay',
         targetPort: port,
         durationMinutes: duration,
         startedAt: now,
         expiresAt: expiresAt,
-        process: tunnelResult.process || null,
+        ws: null,
+        terminalCommand: `bore local ${port} --to bore.pub`,
+        terminalCommandAlt: `npx -y localtunnel --port ${port}`,
         timerId: setTimeout(() => {
           stopActiveSession('expired');
+          activeSessions.delete(sessionId);
         }, duration * 60 * 1000)
       };
+
+      activeSessions.set(sessionId, sessionObj);
+      activeSession = sessionObj;
 
       addAccessLog({
         clientIp: 'Razorpay Gateway',
         device: `Paid Launch (${razorpay_payment_id || 'verified'})`,
         deviceType: 'payment',
-        target: tunnelResult.url,
+        target: liveUrl,
         action: `Live tunnel activated for ${duration} min`
       });
 
       return res.json({
         success: true,
         actionType: 'start',
-        url: tunnelResult.url,
-        provider: tunnelResult.provider,
+        sessionId: sessionId,
+        url: liveUrl,
+        provider: 'TunnelSnap Dual Relay',
         targetPort: port,
         durationMinutes: duration,
         expiresAt: expiresAt,
         remainingSeconds: duration * 60,
+        terminalCommand: `bore local ${port} --to bore.pub`,
+        terminalCommandAlt: `npx -y localtunnel --port ${port}`,
         message: `Payment verified! ${duration}-minute tunnel launched.`
       });
     }

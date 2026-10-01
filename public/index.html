@@ -8,7 +8,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;1,600&family=Red+Rose:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=5.7">
+  <link rel="stylesheet" href="style.css?v=5.8">
   <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
 </head>
 <body>
@@ -636,14 +636,58 @@
                 </button>
               </div>
 
-              <!-- Terminal Snippet -->
-              <div class="terminal-box">
-                <div class="terminal-header">
-                  <span>Terminal test command:</span>
-                  <button class="btn-copy-code" id="btnCopyCurl">Copy</button>
+              <!-- Dual-Mode Connection Hub (Browser Web Relay + Terminal CLI) -->
+              <div class="bridge-mode-card">
+                <div class="bridge-mode-header">
+                  <span class="bridge-mode-title">Connection Mode</span>
+                  <div class="bridge-tabs" role="tablist">
+                    <button class="bridge-tab-btn active" id="tabModeBrowserRelay" type="button">
+                      <span class="tab-dot live"></span> Web Relay (No Terminal)
+                    </button>
+                    <button class="bridge-tab-btn" id="tabModeTerminal" type="button">
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></svg>
+                      Terminal CLI
+                    </button>
+                  </div>
                 </div>
-                <code id="curlSnippetCode">curl http://...</code>
+
+                <!-- Option 1: Browser Web Relay (Default, 1-Click Zero-Install) -->
+                <div class="bridge-panel active" id="panelBrowserRelay">
+                  <div class="relay-live-status">
+                    <div class="relay-status-indicator">
+                      <span class="relay-ping-pulse" id="relayPingDot"></span>
+                      <span class="relay-status-text" id="relayStatusText">Relaying localhost from this tab</span>
+                    </div>
+                    <span class="traffic-counter-pill" id="relayTrafficCounter">0 requests</span>
+                  </div>
+                  <p class="relay-explainer-note">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                    Keep this tab open. Anyone opening your link or scanning the QR code connects directly to your localhost through this browser tab.
+                  </p>
+                </div>
+
+                <!-- Option 2: Terminal Background Command (For CLI devs / background running) -->
+                <div class="bridge-panel" id="panelTerminalCommand" style="display: none;">
+                  <div class="terminal-cli-explainer">
+                    Prefer running in your background terminal without keeping this browser tab open? Run this 1-line command:
+                  </div>
+                  <div class="terminal-box" style="margin-top: 8px; margin-bottom: 8px;">
+                    <div class="terminal-header">
+                      <span id="terminalCmdTitle">Bore Tunnel (Direct)</span>
+                      <button class="btn-copy-code" id="btnCopyTerminalCmd" type="button">Copy Command</button>
+                    </div>
+                    <code id="terminalSnippetCode">bore local 5000 --to bore.pub</code>
+                  </div>
+                  <div class="terminal-alt-row">
+                    <span>Alternative (NPX without install):</span>
+                    <button class="btn-copy-alt" id="btnCopyNpxCmd" type="button">Copy <code>npx localtunnel</code></button>
+                  </div>
+                </div>
               </div>
+
+              <!-- Fallback hooks for backward compatibility -->
+              <span id="curlSnippetCode" style="display: none;"></span>
+              <button id="btnCopyCurl" style="display: none;"></button>
 
               <!-- Guarantees -->
               <div class="guarantee-box">
@@ -1192,6 +1236,6 @@
     </div>
   </footer>
 
-  <script src="app.js?v=5.7"></script>
+  <script src="app.js?v=5.8"></script>
 </body>
 </html>

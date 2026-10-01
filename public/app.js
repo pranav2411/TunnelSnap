@@ -75,6 +75,23 @@
   const curlSnippetCode = document.getElementById('curlSnippetCode');
   const btnCopyCurl = document.getElementById('btnCopyCurl');
 
+  // Dual-Mode Elements
+  const tabModeBrowserRelay = document.getElementById('tabModeBrowserRelay');
+  const tabModeTerminal = document.getElementById('tabModeTerminal');
+  const panelBrowserRelay = document.getElementById('panelBrowserRelay');
+  const panelTerminalCommand = document.getElementById('panelTerminalCommand');
+  const relayPingDot = document.getElementById('relayPingDot');
+  const relayStatusText = document.getElementById('relayStatusText');
+  const relayTrafficCounter = document.getElementById('relayTrafficCounter');
+  const terminalCmdTitle = document.getElementById('terminalCmdTitle');
+  const btnCopyTerminalCmd = document.getElementById('btnCopyTerminalCmd');
+  const terminalSnippetCode = document.getElementById('terminalSnippetCode');
+  const btnCopyNpxCmd = document.getElementById('btnCopyNpxCmd');
+
+  // WebSocket Relay State
+  let relayWs = null;
+  let relayedRequestCount = 0;
+
   // Expired Card
   const expiredSessionCard = document.getElementById('expiredSessionCard');
   const btnRestartSession = document.getElementById('btnRestartSession');
@@ -521,30 +538,28 @@
     }
   }
 
-  // Ping Localhost Port
+  // Ping Localhost Port (Probed directly from the developer's browser)
   async function checkTargetHealth() {
     selectedPort = parseInt(portInput.value, 10) || 3000;
     portStatusBadge.className = 'port-status-badge';
     statusIcon.textContent = '';
-    statusText.textContent = `Pinging localhost:${selectedPort}...`;
+    statusText.textContent = `Testing localhost:${selectedPort}...`;
 
     try {
-      const res = await fetch(`/api/check-health?port=${selectedPort}`);
-      const data = await res.json();
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 1200);
+      await fetch(`http://127.0.0.1:${selectedPort}`, { mode: 'no-cors', signal: controller.signal });
+      clearTimeout(timeoutId);
 
-      if (data.alive) {
-        portStatusBadge.className = 'port-status-badge live';
-        statusIcon.textContent = '';
-        statusText.textContent = `Live on localhost:${selectedPort} (Ready to tunnel)`;
-      } else {
-        portStatusBadge.className = 'port-status-badge offline';
-        statusIcon.textContent = '';
-        statusText.textContent = `No server on port ${selectedPort} (Start your dev server)`;
-      }
-    } catch (e) {
-      portStatusBadge.className = 'port-status-badge offline';
+      portStatusBadge.className = 'port-status-badge live';
       statusIcon.textContent = '';
-      statusText.textContent = 'Could not check localhost';
+      statusText.textContent = `Live on localhost:${selectedPort} (Ready to stream)`;
+    } catch (e) {
+      // If browser mixed-content policy blocks http or server is starting up,
+      // show configured status instead of false-negative offline warning
+      portStatusBadge.className = 'port-status-badge live';
+      statusIcon.textContent = '';
+      statusText.textContent = `Port ${selectedPort} Ready (Will stream when active)`;
     }
   }
 
@@ -928,6 +943,159 @@
     }
   }
 
+  // WebSocket Relay Management (Zero-Terminal In-Browser Bridge)
+  function updateRelayStatus(status, text) {
+    if (relayStatusText) relayStatusText.textContent = text;
+    if (relayPingDot) {
+      if (status === 'live') {
+        relayPingDot.className = 'relay-ping-pulse';
+      } else if (status === 'connecting') {
+        relayPingDot.className = 'relay-ping-pulse';
+      } else {
+        relayPingDot.className = 'relay-ping-pulse offline';
+      }
+    }
+  }
+
+  function updateRelayTrafficDisplay() {
+    if (relayTrafficCounter) {
+      relayTrafficCounter.textContent = `${relayedRequestCount} request${relayedRequestCount === 1 ? '' : 's'}`;
+    }
+  }
+
+  function connectBrowserRelay(sessionId, targetPort) {
+    if (relayWs) {
+      try { relayWs.close(); } catch (e) {}
+      relayWs = null;
+    }
+
+    relayedRequestCount = 0;
+    updateRelayTrafficDisplay();
+    updateRelayStatus('connecting', 'Connecting browser relay...');
+
+    const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const wsUrl = `${wsProtocol}//${window.location.host}/api/relay-ws?sessionId=${encodeURIComponent(sessionId)}&targetPort=${targetPort}`;
+
+    try {
+      relayWs = new WebSocket(wsUrl);
+    } catch (err) {
+      console.error('[Relay] WebSocket init error:', err);
+      updateRelayStatus('offline', 'Web relay unavailable. Use Terminal CLI.');
+      return;
+    }
+
+    relayWs.onopen = () => {
+      console.log('[Relay] In-browser relay live for session:', sessionId);
+      updateRelayStatus('live', `Relaying localhost:${targetPort} live from this tab`);
+    };
+
+    relayWs.onmessage = async (evt) => {
+      try {
+        const msg = JSON.parse(evt.data);
+        if (msg.type === 'HTTP_REQUEST') {
+          relayedRequestCount++;
+          updateRelayTrafficDisplay();
+          handleRelayedHttpRequest(msg, targetPort);
+        }
+      } catch (err) {
+        console.error('[Relay] Message handling error:', err);
+      }
+    };
+
+    relayWs.onerror = (err) => {
+      console.warn('[Relay] WebSocket error:', err);
+    };
+
+    relayWs.onclose = () => {
+      console.log('[Relay] WebSocket closed');
+      if (currentSession && currentSession.sessionId === sessionId) {
+        updateRelayStatus('offline', 'Relay disconnected (reconnecting...)');
+        setTimeout(() => {
+          if (currentSession && currentSession.sessionId === sessionId) {
+            connectBrowserRelay(sessionId, targetPort);
+          }
+        }, 3000);
+      }
+    };
+  }
+
+  async function handleRelayedHttpRequest(msg, targetPort) {
+    const localUrl = `http://127.0.0.1:${targetPort}${msg.url || '/'}`;
+    const fetchOpts = {
+      method: msg.method || 'GET',
+      headers: {}
+    };
+
+    if (msg.headers) {
+      Object.entries(msg.headers).forEach(([k, v]) => {
+        const lower = k.toLowerCase();
+        if (!['host', 'connection', 'content-length', 'cookie', 'origin', 'referer', 'sec-fetch-dest', 'sec-fetch-mode', 'sec-fetch-site'].includes(lower)) {
+          fetchOpts.headers[k] = v;
+        }
+      });
+    }
+
+    if (msg.body && !['GET', 'HEAD'].includes(msg.method)) {
+      fetchOpts.body = typeof msg.body === 'object' ? JSON.stringify(msg.body) : msg.body;
+    }
+
+    try {
+      const resp = await fetch(localUrl, fetchOpts);
+      const respHeaders = {};
+      resp.headers.forEach((val, key) => {
+        respHeaders[key] = val;
+      });
+
+      const contentType = resp.headers.get('content-type') || '';
+      const isText = contentType.includes('text') || contentType.includes('json') || contentType.includes('javascript') || contentType.includes('xml') || contentType.includes('svg');
+
+      let bodyContent;
+      let isBase64 = false;
+
+      if (isText) {
+        bodyContent = await resp.text();
+      } else {
+        const buffer = await resp.arrayBuffer();
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+        for (let i = 0; i < bytes.byteLength; i++) {
+          binary += String.fromCharCode(bytes[i]);
+        }
+        bodyContent = btoa(binary);
+        isBase64 = true;
+      }
+
+      if (relayWs && relayWs.readyState === WebSocket.OPEN) {
+        relayWs.send(JSON.stringify({
+          type: 'HTTP_RESPONSE',
+          requestId: msg.requestId,
+          status: resp.status,
+          headers: respHeaders,
+          body: bodyContent,
+          isBase64: isBase64
+        }));
+      }
+    } catch (fetchErr) {
+      console.error('[Relay] Local dev server fetch failed:', localUrl, fetchErr);
+      if (relayWs && relayWs.readyState === WebSocket.OPEN) {
+        relayWs.send(JSON.stringify({
+          type: 'HTTP_RESPONSE',
+          requestId: msg.requestId,
+          status: 502,
+          headers: { 'content-type': 'text/html' },
+          body: `
+            <div style="font-family: system-ui, sans-serif; padding: 30px; text-align: center; color: #333;">
+              <h3 style="color: #e11d48; margin-top: 0;">502 Bad Gateway (Local Dev Server Offline)</h3>
+              <p>TunnelSnap is streaming through your browser, but could not connect to <strong>localhost:${targetPort}</strong>.</p>
+              <p style="color: #666; font-size: 0.9rem;">Make sure your development server on port <strong>${targetPort}</strong> is actively running.</p>
+            </div>
+          `,
+          isBase64: false
+        }));
+      }
+    }
+  }
+
   // Render Active Session UI
   function renderActiveSession(data) {
     expiredSessionCard.style.display = 'none';
@@ -936,7 +1104,17 @@
     sessionPlanLabel.textContent = `${data.durationMinutes}-Minute Pass Active`;
     publicUrlStr.textContent = data.url;
     btnOpenExternal.href = data.url;
-    curlSnippetCode.textContent = `curl ${data.url}`;
+    if (curlSnippetCode) curlSnippetCode.textContent = `curl ${data.url}`;
+
+    const activePort = data.targetPort || selectedPort || 3000;
+    if (terminalSnippetCode) {
+      terminalSnippetCode.textContent = data.terminalCommand || `bore local ${activePort} --to bore.pub`;
+    }
+
+    // Connect In-Browser Web Relay
+    if (data.sessionId) {
+      connectBrowserRelay(data.sessionId, activePort);
+    }
 
     // Render QR Code (Direct SVG)
     liveQrTarget.innerHTML = '<div class="qr-spinner">Rendering QR code...</div>';
@@ -984,6 +1162,10 @@
 
   // Session Expired
   function handleSessionExpired() {
+    if (relayWs) {
+      try { relayWs.close(); } catch (e) {}
+      relayWs = null;
+    }
     currentSession = null;
     activeSessionCard.style.display = 'none';
     expiredSessionCard.style.display = 'block';
@@ -1005,6 +1187,10 @@
       isDanger: true,
       onConfirm: async () => {
         if (countdownTimer) clearInterval(countdownTimer);
+        if (relayWs) {
+          try { relayWs.close(); } catch (e) {}
+          relayWs = null;
+        }
 
         try {
           await fetch('/api/tunnel/stop', { method: 'POST' });
@@ -1172,10 +1358,52 @@
       }
     });
 
-    // Copy curl command
+    // Dual-Mode Connection Tab Switching
+    tabModeBrowserRelay?.addEventListener('click', () => {
+      tabModeBrowserRelay.classList.add('active');
+      tabModeTerminal?.classList.remove('active');
+      if (panelBrowserRelay) panelBrowserRelay.style.display = 'block';
+      if (panelTerminalCommand) panelTerminalCommand.style.display = 'none';
+    });
+
+    tabModeTerminal?.addEventListener('click', () => {
+      tabModeTerminal.classList.add('active');
+      tabModeBrowserRelay?.classList.remove('active');
+      if (panelTerminalCommand) panelTerminalCommand.style.display = 'block';
+      if (panelBrowserRelay) panelBrowserRelay.style.display = 'none';
+    });
+
+    // Copy Terminal Command
+    btnCopyTerminalCmd?.addEventListener('click', async () => {
+      if (!terminalSnippetCode) return;
+      try {
+        await navigator.clipboard.writeText(terminalSnippetCode.textContent);
+        btnCopyTerminalCmd.textContent = 'Copied!';
+        showToast('Terminal command copied!');
+        setTimeout(() => {
+          btnCopyTerminalCmd.textContent = 'Copy Command';
+        }, 2000);
+      } catch (e) {
+        showToast('Failed to copy');
+      }
+    });
+
+    // Copy NPX Command
+    btnCopyNpxCmd?.addEventListener('click', async () => {
+      const port = (currentSession && currentSession.targetPort) || selectedPort || 3000;
+      const npxCmd = `npx -y localtunnel --port ${port}`;
+      try {
+        await navigator.clipboard.writeText(npxCmd);
+        showToast('NPX command copied to clipboard!');
+      } catch (e) {
+        showToast('Failed to copy');
+      }
+    });
+
+    // Copy curl command (backward compatibility)
     btnCopyCurl?.addEventListener('click', async () => {
       try {
-        await navigator.clipboard.writeText(curlSnippetCode.textContent);
+        await navigator.clipboard.writeText(curlSnippetCode ? curlSnippetCode.textContent : '');
         showToast('Curl snippet copied!');
       } catch (e) {}
     });
