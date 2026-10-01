@@ -7,6 +7,7 @@ const crypto = require('crypto');
 const { spawn } = require('child_process');
 const QRCode = require('qrcode');
 const Razorpay = require('razorpay');
+const localtunnel = require('localtunnel');
 
 const app = express();
 const server = http.createServer(app);
@@ -119,8 +120,8 @@ function stopActiveSession(reason = 'expired') {
   console.log(`[TunnelSnap] Session ended (${reason}). Access revoked.`);
 }
 
-// Start Global Tunnel via Bore (100% Reliable, Zero 403, Instant Connect)
-function startTunnel(targetPort) {
+// Start Global Tunnel with Automatic Fallback (Bore primary, Localtunnel secondary)
+function tryBoreTunnel(targetPort) {
   return new Promise((resolve, reject) => {
     let resolved = false;
     let proc;
@@ -135,9 +136,9 @@ function startTunnel(targetPort) {
       if (!resolved) {
         resolved = true;
         try { proc.kill(); } catch (e) {}
-        reject(new Error('Timed out establishing secure tunnel connection'));
+        reject(new Error('Timed out waiting for bore edge server'));
       }
-    }, 10000);
+    }, 8000);
 
     const onData = (data) => {
       const output = data.toString();
@@ -148,7 +149,7 @@ function startTunnel(targetPort) {
         const remotePort = match[1];
         resolve({
           url: `http://bore.pub:${remotePort}`,
-          provider: 'TunnelSnap Global Edge',
+          provider: 'TunnelSnap Global Edge (Bore)',
           process: proc
         });
       }
@@ -169,7 +170,7 @@ function startTunnel(targetPort) {
       if (!resolved) {
         resolved = true;
         clearTimeout(timer);
-        reject(new Error(`Tunnel process closed with code ${code}`));
+        reject(new Error(`Bore process exited with code ${code}`));
       } else {
         if (activeSession.active) {
           stopActiveSession('process_closed');
@@ -178,6 +179,55 @@ function startTunnel(targetPort) {
     });
   });
 }
+
+function tryLocalTunnel(targetPort) {
+  return new Promise((resolve, reject) => {
+    let resolved = false;
+    const timer = setTimeout(() => {
+      if (!resolved) {
+        resolved = true;
+        reject(new Error('Timed out establishing fallback tunnel connection'));
+      }
+    }, 15000);
+
+    localtunnel({ port: targetPort }, (err, tunnel) => {
+      if (err) {
+        if (!resolved) {
+          resolved = true;
+          clearTimeout(timer);
+          return reject(err);
+        }
+      }
+      if (!resolved) {
+        resolved = true;
+        clearTimeout(timer);
+        resolve({
+          url: tunnel.url,
+          provider: 'TunnelSnap Global Edge (Direct)',
+          process: {
+            kill: () => {
+              try { tunnel.close(); } catch (e) {}
+            }
+          }
+        });
+      }
+    });
+  });
+}
+
+async function startTunnel(targetPort) {
+  try {
+    return await tryBoreTunnel(targetPort);
+  } catch (boreErr) {
+    console.warn('[TunnelSnap] Bore unavailable or failed (' + boreErr.message + '), engaging fallback tunnel...');
+    try {
+      return await tryLocalTunnel(targetPort);
+    } catch (fallbackErr) {
+      throw new Error(`Unable to establish tunnel: ${boreErr.message}. Fallback: ${fallbackErr.message}`);
+    }
+  }
+}
+
 
 // REST API: Network info (for local offline fallback)
 app.get('/api/network-info', (req, res) => {

@@ -31,9 +31,15 @@ if [ ! -f "$APP_DIR/.env" ]; then
     cp "$APP_DIR/.env.example" "$APP_DIR/.env" 2>/dev/null || echo "PORT=4050" > "$APP_DIR/.env"
 fi
 
-# 3. Install Node.js dependencies
-echo "[2/5] Installing production npm packages..."
+# 3. Install Node.js dependencies & bore tunneling binary
+echo "[2/5] Installing production npm packages & tunnel engine..."
 npm install --production
+
+if ! command -v bore &> /dev/null; then
+    echo "Installing bore tunneling engine..."
+    sudo curl -sSL https://github.com/ekzhang/bore/releases/download/v0.5.2/bore-v0.5.2-x86_64-unknown-linux-musl.tar.gz | sudo tar -xz -C /usr/local/bin
+    sudo chmod +x /usr/local/bin/bore || true
+fi
 
 # 4. Start or restart with PM2
 echo "[3/5] Starting application via PM2..."
